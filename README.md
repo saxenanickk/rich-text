@@ -13,6 +13,7 @@ class App extends Component {
     return <TextEditor  linkUpload={false} onSave={data => console.log("data is",data)}/>;
   }
 }
+```
 
 ### Usage Example
 
@@ -23,12 +24,11 @@ import {RichText} from "react-text-editor";
 const data =
 '{"blocks":[{"key":"pqa3","text":"1","type":"blockquote","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"87ajs","text":"2","type":"ordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}],"entityMap":{}}';
 class App extends Component {
-render() {
-return <RichText initialData={data} />;
-}
+  render() {
+    return <RichText initialData={data} />;
+  }
 }
 
-export default App;
 
 export default App;
 
@@ -54,4 +54,7 @@ export default App;
 | `audioUpload`         | Boolean | true    | either give this option to the user or not         |
 | `fileUpload`          | Boolean | true    | either give this option to the user or not         |
 | `onSave`              | String  |         | return a string can be used to store at the server |
+
+```
+
 ```
