@@ -1,5 +1,11 @@
 import React, { Component } from "react";
-import { Editor, EditorState, RichUtils } from "draft-js";
+import {
+  Editor,
+  EditorState,
+  RichUtils,
+  convertToRaw,
+  convertFromRaw
+} from "draft-js";
 import _ from "lodash";
 import "./TextEditor.css";
 import "./RichEditorStyle.css";
@@ -61,7 +67,7 @@ export default class TextEditor extends Component {
       selectedBlockType: null,
       isInsertLink: false,
       openColorPicker: false,
-      editorState: EditorState.createEmpty()
+      editorState: null
     };
     this.fileOpener = [];
     this.initialWidth = 1920;
@@ -85,6 +91,22 @@ export default class TextEditor extends Component {
     this.handleChangeComplete = this.handleChangeComplete.bind(this);
     this.updateEditorState = (editorState, cb) =>
       this.setState({ editorState }, cb);
+  }
+
+  componentDidMount() {
+    try {
+      if (this.props.initialData) {
+        this.setState({
+          editorState: EditorState.createWithContent(
+            convertFromRaw(JSON.parse(this.props.initialData))
+          )
+        });
+      } else {
+        this.setState({ editorState: EditorState.createEmpty() });
+      }
+    } catch (error) {
+      this.setState({ editorState: EditorState.createEmpty() });
+    }
   }
   checkStyleAvailibility = inlineStyle => {
     return this.state.userSelectedInlineStyles.indexOf(inlineStyle) >= 0;
@@ -188,8 +210,8 @@ export default class TextEditor extends Component {
     // If the user changes block type before entering any text, we can
     // either style the placeholder or hide it. Let's just hide it now.
     let className = "RichEditor-editor";
-    var contentState = editorState.getCurrentContent();
-    if (!contentState.hasText()) {
+    var contentState = editorState ? editorState.getCurrentContent() : null;
+    if (contentState && !contentState.hasText()) {
       if (
         contentState
           .getBlockMap()
@@ -199,79 +221,95 @@ export default class TextEditor extends Component {
         className += " RichEditor-hidePlaceholder";
       }
     }
-    return (
-      <div
-        className={"text-editor"}
-        style={{
-          width: (props.width * 100) / this.initialWidth + "%"
-        }}
-      >
-        <div className={"text-editor-style-row"}>
-          <InlineStyleControls
-            editorState={editorState}
-            onToggle={this.toggleInlineStyle}
-            {...this.props}
-          />
-          <BlockStyleControls
-            editorState={editorState}
-            onToggle={this.toggleBlockType}
-            {...this.props}
-          />
-          {this.state.isInsertLink && (
-            <LinkInput onClose={() => this.setState({ isInsertLink: false })} />
-          )}
-        </div>
-        <div className={"text-editor-parent"}>
-          <div className={className + " text-editor-area"}>
-            <Editor
-              ref={ref => (this.editorRef = ref)}
-              blockStyleFn={this.getBlockStyle}
-              customStyleMap={this.styleMap}
-              customStyleFn={customStyleFn}
+    if (editorState) {
+      return (
+        <div
+          className={"text-editor"}
+          style={{
+            width: (props.width * 100) / this.initialWidth + "%",
+            height: props.height
+          }}
+        >
+          <div className={"text-editor-style-row"}>
+            <InlineStyleControls
               editorState={editorState}
-              handleKeyCommand={this.handleKeyCommand}
-              onChange={this.onChange}
-              onTab={this.onTab}
-              placeholder="Tell a story..."
-              spellCheck={this.props.spellCheck}
+              onToggle={this.toggleInlineStyle}
+              {...this.props}
             />
+            <BlockStyleControls
+              editorState={editorState}
+              onToggle={this.toggleBlockType}
+              {...this.props}
+            />
+            {this.state.isInsertLink && (
+              <LinkInput
+                onClose={() => this.setState({ isInsertLink: false })}
+              />
+            )}
+          </div>
+          <div className={"text-editor-parent"}>
+            <div className={className + " text-editor-area"}>
+              <Editor
+                ref={ref => (this.editorRef = ref)}
+                blockStyleFn={this.getBlockStyle}
+                customStyleMap={this.styleMap}
+                customStyleFn={customStyleFn}
+                editorState={editorState}
+                handleKeyCommand={this.handleKeyCommand}
+                onChange={this.onChange}
+                onTab={this.onTab}
+                placeholder="Tell a story..."
+                spellCheck={this.props.spellCheck}
+              />
+            </div>
+          </div>
+          <div className={"text-editor-bottom-row"}>
+            {bottomIcons.map(
+              (item, index) =>
+                this.props[item.checkOption] && (
+                  <div key={index}>
+                    <input
+                      type="file"
+                      hidden
+                      accept={item.fileType}
+                      ref={ref => (this.fileOpener[index] = ref)}
+                      onChange={event =>
+                        console.log("event is", event.target.files)
+                      }
+                    />
+                    <i
+                      className={item.name}
+                      key={index}
+                      onClick={() => {
+                        if (item.type === FILE) this.fileOpener[index].click();
+                        else if (item.type === LINK)
+                          this.setState({ isInsertLink: true });
+                      }}
+                    />
+                  </div>
+                )
+            )}
+            <button
+              className={"texteditor-save-button"}
+              onClick={() => {
+                let js = convertToRaw(
+                  this.state.editorState.getCurrentContent()
+                );
+                this.props.onSave(JSON.stringify(js));
+              }}
+            >
+              Save
+            </button>
           </div>
         </div>
-        <div className={"text-editor-bottom-row"}>
-          {bottomIcons.map(
-            (item, index) =>
-              this.props[item.checkOption] && (
-                <div key={index}>
-                  <input
-                    type="file"
-                    hidden
-                    accept={item.fileType}
-                    ref={ref => (this.fileOpener[index] = ref)}
-                    onChange={event =>
-                      console.log("event is", event.target.files)
-                    }
-                  />
-                  <i
-                    className={item.name}
-                    key={index}
-                    onClick={() => {
-                      if (item.type === FILE) this.fileOpener[index].click();
-                      else if (item.type === LINK)
-                        this.setState({ isInsertLink: true });
-                    }}
-                  />
-                </div>
-              )
-          )}
-          <button className={"texteditor-save-button"}>Save</button>
-        </div>
-      </div>
-    );
+      );
+    } else {
+      return null;
+    }
   }
 }
 
 TextEditor.defaultProps = {
-  width: 900,
   isSpellCheck: false,
   boldOption: true,
   italicOption: true,
@@ -285,5 +323,7 @@ TextEditor.defaultProps = {
   imageUpload: false,
   videoUpload: false,
   audioUpload: false,
-  fileUpload: false
+  fileUpload: false,
+  initialData: null,
+  onSave: data => console.log("data to save is", data)
 };
