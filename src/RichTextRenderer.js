@@ -17,10 +17,10 @@ export default class RichText extends Component {
     this.styleMap = {
       CODE: {
         backgroundColor: "rgba(0, 0, 0, 0.05)",
-        width: "60%",
+        width: "100%",
         fontFamily: '"Inconsolata", "Menlo", "Consolas", monospace',
         fontSize: 16,
-        padding: 2
+        flexWrap: 'wrap'
       }
     };
   }
@@ -41,6 +41,7 @@ export default class RichText extends Component {
       this.setState({ editorState: EditorState.createEmpty() });
     }
   }
+
   //function to get the style for blockquote
   getBlockStyle = block => {
     switch (block.getType()) {
@@ -52,47 +53,22 @@ export default class RichText extends Component {
   };
 
   render() {
-    const { props } = this;
     const { editorState } = this.state;
+
     // If the user changes block type before entering any text, we can
     // either style the placeholder or hide it. Let's just hide it now.
-    let className = "RichEditor-editor";
-    var contentState = editorState ? editorState.getCurrentContent() : null;
-    if (contentState && !contentState.hasText()) {
-      if (
-        contentState
-          .getBlockMap()
-          .first()
-          .getType() !== "unstyled"
-      ) {
-        className += " RichEditor-hidePlaceholder";
-      }
-    }
     if (editorState) {
       return (
-        <div
-          className={"text-editor"}
-          style={{
-            width: (props.width * 100) / this.initialWidth + "%",
-            height: props.height
-          }}
-        >
-          <div className={"text-editor-parent"}>
-            <div className={className + " text-editor-area"}>
-              <Editor
-                ref={ref => (this.editorRef = ref)}
-                blockStyleFn={this.getBlockStyle}
-                customStyleMap={this.styleMap}
-                editorState={editorState}
-                readOnly={true}
-              />
-            </div>
-          </div>
-        </div>
+        <Editor
+          ref={ref => (this.editorRef = ref)}
+          blockStyleFn={this.getBlockStyle}
+          customStyleMap={this.styleMap}
+          editorState={editorState}
+          readOnly={true}
+        />
       );
-    } else {
-      return null;
     }
+    return null;
   }
 }
 
