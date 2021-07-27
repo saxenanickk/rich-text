@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { Editor, EditorState, convertFromRaw } from "draft-js";
-import _ from "lodash";
 import "./TextEditor.css";
 import "./RichEditorStyle.css";
 import { BLOCKQUOTE } from "./TextEditorConstants";
