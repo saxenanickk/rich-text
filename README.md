@@ -7,7 +7,7 @@ npm i --save git+https://<username>@https://github.com/saxenanickk/rich-text.git
 
 ```
 import React, { Component } from "react";
-import {TextEditor} from "react-text-editor";
+import {TextEditor} from "rich-text";
 class App extends Component {
   render() {
     return (
@@ -25,7 +25,7 @@ class App extends Component {
 ```
 
 import React, { Component } from "react";
-import {RichText} from "react-text-editor";
+import {RichText} from "rich-text";
 
 const data = '{"blocks":[{"key":"pqa3","text":"1","type":"blockquote","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"87ajs","text":"2","type":"ordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}],"entityMap":{}}';
 
